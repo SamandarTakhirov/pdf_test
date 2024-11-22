@@ -1,9 +1,12 @@
+import 'package:open_file/open_file.dart';
 import 'package:pdf/widgets.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf_test/core/models/fake_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:open_document/my_files/init.dart';
+
+import 'pdf_api.dart';
 
 class InvoiceService {
   Future<Uint8List> fetchImage(String url) async {
@@ -15,7 +18,7 @@ class InvoiceService {
     }
   }
 
-  Future<Uint8List> createInvoice(FakeModel fakeModel) async {
+  Future<Future<File>> createInvoice(FakeModel fakeModel) async {
     final pdf = Document();
     final image = await fetchImage(fakeModel.image);
 
@@ -178,26 +181,37 @@ class InvoiceService {
             final text = 'Page ${context.pageNumber} of ${context.pagesCount}';
             return Container(
               alignment: Alignment.centerRight,
-              margin: const EdgeInsets.only(top: 1 * PdfPageFormat.cm),
+              margin: EdgeInsets.only(top: 1 * PdfPageFormat.cm),
               child: Text(
                 text,
-                style: const TextStyle(
+                style: TextStyle(
                   color: PdfColors.black,
                 ),
               ),
             );
           }),
     );
-
-    return await pdf.save();
+    return PdfApi.saveDocument(name: 'my_example.pdf', pdf: pdf);
+    // return await pdf.save();
   }
 
-  Future<void> savedPdfFile(String fileName, Uint8List byteList) async {
-    final output = await OpenDocument.getPathDocument();
-    final filePath = '$output/$fileName.pdf';
-    final file = File(filePath);
-    await file.writeAsBytes(byteList);
-    print('PDF saved at $filePath');
-    await OpenDocument.openDocument(filePath: filePath);
+  static Future<File> saveDocument({
+    required String name,
+    required Document pdf,
+  }) async {
+    final bytes = await pdf.save();
+
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File('${dir.path}/$name');
+
+    await file.writeAsBytes(bytes);
+
+    return file;
+  }
+
+  static Future openFile(File file) async {
+    final url = file.path;
+
+    await OpenFile.open(url);
   }
 }
