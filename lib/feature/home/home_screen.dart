@@ -34,23 +34,32 @@ class _HomeScreenState extends State<HomeScreen> {
         () => debugPrint("Error: "),
       ),
     );
+
+    await _handler.requestPermission(
+      Permission.manageExternalStorage,
+      onPermissionDenied: () => setState(
+        () => debugPrint("Error: "),
+      ),
+    );
   }
 
   final FakeModel fakeModel = FakeModel(
-    productModel: const [
-      ProductModel(
-        productName: "Laptop",
-        price: 1200.50,
-        qqs: 180.08,
-        productInfo: "16GB RAM",
-      ),
-      ProductModel(
-        productName: "Smartphone",
-        price: 800.00,
-        qqs: 120.00,
-        productInfo: "128GB storage",
-      ),
-    ],
+    productModel: List.generate(
+      100,
+      (index) => index.isOdd
+          ? const ProductModel(
+              productName: "Laptop",
+              price: 1200.50,
+              qqs: 180.08,
+              productInfo: "16GB RAM",
+            )
+          : const ProductModel(
+              productName: "Smartphone",
+              price: 800.00,
+              qqs: 120.00,
+              productInfo: "128GB storage",
+            ),
+    ),
     image: "https://frag.gg/uploads/category/429/original/1703247698.png",
     createdAt: DateTime.now(),
     companyName: "Tech Solutions Ltd.",

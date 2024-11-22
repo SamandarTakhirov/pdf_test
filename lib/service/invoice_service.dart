@@ -1,6 +1,4 @@
-import 'dart:typed_data';
-import 'dart:io';
-import 'package:pdf/widgets.dart' as pw;
+import 'package:pdf/widgets.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf_test/core/models/fake_model.dart';
@@ -18,30 +16,185 @@ class InvoiceService {
   }
 
   Future<Uint8List> createInvoice(FakeModel fakeModel) async {
-    final pdf = pw.Document();
+    final pdf = Document();
     final image = await fetchImage(fakeModel.image);
 
     pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        build: (context) => pw.Center(
-          child: pw.Column(
-            children: [
-              pw.Image(pw.MemoryImage(image), width: 150, height: 150),
-              pw.Text(fakeModel.companyName),
-              pw.Text(fakeModel.companyAddress),
-            ],
-          ),
-        ),
-      ),
+      MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          build: (context) => [
+                Center(
+                  child: SizedBox(
+                    width: 1000,
+                    height: 3000,
+                    child: Column(
+                      children: [
+                        Image(
+                          MemoryImage(image),
+                          width: 150,
+                          height: 150,
+                        ),
+                        Text(
+                          fakeModel.companyName,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Text(
+                          fakeModel.companyAddress,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('STIR:${fakeModel.stir}'),
+                            Text('S/N: STS-${fakeModel.snCode}'),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('KASSIR:${fakeModel.customer}'),
+                            Text('POS N ${fakeModel.id}'),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('SAVDO CHEKI:${fakeModel.id}'),
+                            Text('${fakeModel.createdAt}'),
+                          ],
+                        ),
+                        Text(
+                          '---------------------------------------',
+                          style: TextStyle(
+                              fontSize: 30, fontWeight: FontWeight.normal),
+                        ),
+                        Expanded(
+                          child: ListView.separated(
+                            separatorBuilder: (context, index) => Text(
+                              '---------------------------------------',
+                              style: TextStyle(
+                                  fontSize: 30, fontWeight: FontWeight.normal),
+                            ),
+                            itemCount: fakeModel.productModel.length,
+                            itemBuilder: (context, index) {
+                              return Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        fakeModel.productModel
+                                            .elementAt(index)
+                                            .productName,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${fakeModel.productModel.elementAt(index).price} USD',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text('sh.j QQS 12%'),
+                                      Text(
+                                          '${fakeModel.productModel.elementAt(index).qqs}'),
+                                    ],
+                                  ),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text('Product Info'),
+                                      Text(
+                                        fakeModel.productModel
+                                            .elementAt(index)
+                                            .productInfo,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                        Text(
+                          '---------------------------------------',
+                          style: TextStyle(
+                              fontSize: 30, fontWeight: FontWeight.normal),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'HAMMASI:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            Text(
+                              '${fakeModel.totalPrice} USD',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Tuzatish QQS:'),
+                            Text('-${fakeModel.totalQQS}'),
+                          ],
+                        ),
+                        Text(
+                          '---------------------------------------',
+                          style: TextStyle(
+                              fontSize: 30, fontWeight: FontWeight.normal),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+          footer: (context) {
+            final text = 'Page ${context.pageNumber} of ${context.pagesCount}';
+            return Container(
+              alignment: Alignment.centerRight,
+              margin: const EdgeInsets.only(top: 1 * PdfPageFormat.cm),
+              child: Text(
+                text,
+                style: const TextStyle(
+                  color: PdfColors.black,
+                ),
+              ),
+            );
+          }),
     );
 
     return await pdf.save();
   }
 
   Future<void> savedPdfFile(String fileName, Uint8List byteList) async {
-    final output = await getTemporaryDirectory();
-    final filePath = '${output.path}/$fileName.pdf';
+    final output = await OpenDocument.getPathDocument();
+    final filePath = '$output/$fileName.pdf';
     final file = File(filePath);
     await file.writeAsBytes(byteList);
     print('PDF saved at $filePath');

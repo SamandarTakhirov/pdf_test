@@ -2,7 +2,10 @@
     package="com.example.open_document_example">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <application android:label="pdf_test"
@@ -33,14 +36,14 @@
         <meta-data android:name="flutterEmbedding" android:value="2" />
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.example.open_document_example.fileprovider"
+            android:authorities="com.example.pdf_test.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths" />
         </provider>
-        
+
     </application>
     <!--
 	Required to query activities that can process text, see:
