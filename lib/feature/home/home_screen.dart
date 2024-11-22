@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf_test/core/models/fake_model.dart';
 import 'package:pdf_test/core/models/product_model.dart';
 import 'package:pdf_test/service/invoice_service.dart';
+import 'package:pdf_test/service/permission_service.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,6 +19,23 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final InvoiceService invoiceService = InvoiceService();
   int number = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!Platform.isMacOS) initCheckPermission();
+  }
+
+  void initCheckPermission() async {
+    final _handler = PermissionsService();
+    await _handler.requestPermission(
+      Permission.storage,
+      onPermissionDenied: () => setState(
+        () => debugPrint("Error: "),
+      ),
+    );
+  }
+
   final FakeModel fakeModel = FakeModel(
     productModel: const [
       ProductModel(
@@ -54,10 +75,16 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             onPressed: () async {
-              final data = await invoiceService.createHelloWorld();
-
-              invoiceService.savedPdfFile('invoice_$number', data);
-              number++;
+              print('11111111111111');
+              try {
+                final data = await invoiceService.createInvoice(fakeModel);
+                print('ishladi 222222222222222');
+                invoiceService.savedPdfFile('invoice_$number', data);
+                number++;
+                print('chiqib ketdi 333333');
+              } catch (e) {
+                print('Error: $e');
+              }
             },
             icon: const Icon(CupertinoIcons.cloud_download),
           ),
